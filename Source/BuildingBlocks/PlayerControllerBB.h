@@ -12,7 +12,9 @@ class UEnhancedInputComponent;
 class ACharacterBB;
 class UInputMappingContext;
 
-
+/**
+ * TODO: He rename this APlayerControllerBBBase
+ */
 UCLASS()
 class BUILDINGBLOCKS_API APlayerControllerBBBase : public APlayerController
 {
@@ -29,6 +31,15 @@ public:
 	TObjectPtr<UInputAction> ActionJump = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Player Input|Character Movement")
+	TObjectPtr<UInputAction> ActionToggleCrouch = nullptr;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Player Input|Character Movement")
+	TObjectPtr<UInputAction> ActionToggleSprint = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Player Input|Character Movement")
+	TObjectPtr<UInputAction> ActionPsiBlast = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Player Input|Character Movement")
 	TObjectPtr<UInputMappingContext> InputMappingContent = nullptr;
 
 protected:
@@ -38,6 +49,9 @@ protected:
 	void HandleLook(const FInputActionValue& InputActionValue);
 	void HandleMove(const FInputActionValue& InputActionValue);
 	void HandleJump();
+	void HandlePsiBlast();
+	void HandleToggleSprint();
+	void HandleToggleCrouch();
 
 private:
 	UPROPERTY()
