@@ -3,18 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InputAction.h"
+#include "InputActionValue.h"
 #include "GameFramework/PlayerController.h"
 #include "PlayerControllerBB.generated.h"
 
-class UInputMappingContext;
 class UEnhancedInputComponent;
 class ACharacterBB;
+class UInputMappingContext;
 
-class UInputAction;
 
-/**
- * TODO: He rename this APlayerControllerBBBase
- */
 UCLASS()
 class BUILDINGBLOCKS_API APlayerControllerBBBase : public APlayerController
 {
@@ -22,13 +20,13 @@ class BUILDINGBLOCKS_API APlayerControllerBBBase : public APlayerController
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Player Input|Character Movement")
-	UInputAction* ActionMove = nullptr;
+	TObjectPtr<UInputAction> ActionMove = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Player Input|Character Movement")
-	UInputAction* ActionLook = nullptr;
+	TObjectPtr<UInputAction> ActionLook = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Player Input|Character Movement")
-	UInputAction* ActionJump = nullptr;
+	TObjectPtr<UInputAction> ActionJump = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Player Input|Character Movement")
 	TObjectPtr<UInputMappingContext> InputMappingContent = nullptr;
@@ -37,15 +35,15 @@ protected:
 	virtual void OnPossess(APawn* aPawn) override;
 	virtual void OnUnPossess() override;
 
-	void HandleLook(const struct FInputActionValue& InputActionValue);
+	void HandleLook(const FInputActionValue& InputActionValue);
 	void HandleMove(const FInputActionValue& InputActionValue);
 	void HandleJump();
 
 private:
 	UPROPERTY()
-	UEnhancedInputComponent* EnhancedInputComponent = nullptr;
+	TObjectPtr<UEnhancedInputComponent> EnhancedInputComponent = nullptr;
 
 	UPROPERTY()
-	ACharacterBB* PlayerCharacter = nullptr;
+	TObjectPtr<ACharacterBB> PlayerCharacter = nullptr;
 	
 };
