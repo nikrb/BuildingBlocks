@@ -3,6 +3,8 @@
 
 #include "CharacterBB.h"
 
+#include "GameFramework/CharacterMovementComponent.h"
+
 // Sets default values
 ACharacterBB::ACharacterBB()
 {
@@ -15,7 +17,9 @@ ACharacterBB::ACharacterBB()
 void ACharacterBB::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	if (GetMovementComponent()) {
+		GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
+	}
 }
 
 // Called every frame

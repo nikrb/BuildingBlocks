@@ -1,5 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+// #include "Engine/GameEngine.h"
+//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, 
+//	FString::Printf(TEXT("do we have crouch: [%d]"), GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch));
 
 #include "PlayerControllerBB.h"
 #include "CharacterBB.h"
@@ -36,6 +39,20 @@ void APlayerControllerBBBase::OnPossess(APawn* aPawn)
 		EnhancedInputComponent->BindAction(ActionJump, ETriggerEvent::Triggered, this,
 			&APlayerControllerBBBase::HandleJump);
 	}
+	if (ActionPsiBlast) {
+		EnhancedInputComponent->BindAction(ActionPsiBlast, ETriggerEvent::Triggered, this,
+			&APlayerControllerBBBase::HandlePsiBlast);
+	}
+
+	if (ActionToggleCrouch) {
+		EnhancedInputComponent->BindAction(ActionToggleCrouch, ETriggerEvent::Triggered, this,
+			&APlayerControllerBBBase::HandleToggleCrouch);
+	}
+
+	if (ActionToggleSprint) {
+		EnhancedInputComponent->BindAction(ActionToggleSprint, ETriggerEvent::Triggered, this,
+			&APlayerControllerBBBase::HandleToggleSprint);
+	}
 }
 
 void APlayerControllerBBBase::OnUnPossess()
@@ -69,4 +86,22 @@ void APlayerControllerBBBase::HandleJump()
 		PlayerCharacter->UnCrouch();
 		PlayerCharacter->Jump();
 	}
+}
+
+void APlayerControllerBBBase::HandlePsiBlast()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Psi Blast!"));
+}
+
+void APlayerControllerBBBase::HandleToggleSprint()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Sprint!"));
+}
+
+void APlayerControllerBBBase::HandleToggleCrouch()
+{
+	if (PlayerCharacter && PlayerCharacter->bIsCrouched)
+		PlayerCharacter->UnCrouch();
+	else
+		PlayerCharacter->Crouch();
 }
