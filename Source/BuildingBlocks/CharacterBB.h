@@ -40,75 +40,98 @@ public:
 	// Sets default values for this character's properties
 	ACharacterBB();
 
+	virtual void AddMovementInput(FVector WorldDirection, float ScaleValue = 1.0f, bool bForce = false) override;
+	virtual void Jump() override;
+	virtual void Crouch(bool bClientSimulation = false) override;
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Movement", meta = (AllowPrivateAccess = "true"))
+	float NormalMaxWalkSpeed = 400.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Movement", meta = (AllowPrivateAccess = "true"))
+	float RunningMaxWalkSpeed = 800.0f;
+	
+	UFUNCTION(BlueprintCallable, Category="Player|Movement")
+	void SetRunning(bool IsRunning);
+
+	UFUNCTION(BlueprintCallable, Category="Player|Movement")
+	void ToggleRunning();
+
+	UFUNCTION(BlueprintCallable, Category="Player|Movement")
+	void SetHasJumped();
+
+	UFUNCTION(BlueprintCallable, Category="Player|Movement")
+	void SetHasRan();
+
 #pragma region Health
 
-	UFUNCTION(BlueprintPure, Cateogory="Player|Health")
+	UFUNCTION(BlueprintPure, Category="Player|Health")
 	int GetHealth();
 
-	UFUNCTION(BlueprintPure, Cateogory = "Player|Health")
+	UFUNCTION(BlueprintPure, Category="Player|Health")
 	int GetMaxHealth();
 
-	UFUNCTION(BlueprintCallable, Cateogory = "Player|Health")
+	UFUNCTION(BlueprintCallable, Category="Player|Health")
 	void UpdateHealth(int DeltaHealth);
 
-	UFUNCTION(BlueprintCallable, Cateogory = "Player|Health")
-	void RestorToFullHealth();
+	UFUNCTION(BlueprintCallable, Category="Player|Health")
+	void RestoreToFullHealth();
 
-	UFUNCTION(BlueprintCallable, Cateogory = "Player|Health")
+	UFUNCTION(BlueprintCallable, Category="Player|Health")
 	void SetMaxHealth(int NewMaxHealth);
 
-	UPROPERTY(BlueprintAssignable, Category = "Player|Health")
+	UPROPERTY(BlueprintAssignable, Category="Player|Health")
 	FIntStatUpdated OnHealthChanged;
 
-	UPROPERTY(BlueprintAssignable, Categor = "Player|Health")
+	UPROPERTY(BlueprintAssignable, Category="Player|Health")
 	FPlayerIsDead OnPlayerDied;
 
 #pragma endregion
 
 #pragma region Stamina
 
-	UFUNCTION(BlueprintPure, Cateogory = "Player|Stamina")
+	UFUNCTION(BlueprintPure, Category="Player|Stamina")
 	float GetStamina();
 
-	UFUNCTION(BlueprintPure, Cateogory = "Player|Stamina")
+	UFUNCTION(BlueprintPure, Category="Player|Stamina")
 	float GetStaminaRecuperationFactor();
 
-	UFUNCTION(BlueprintPure, Cateogory = "Player|Stamina")
+	// TODO: this was BlueprintPure - not allowed with void return
+	UFUNCTION(BlueprintCallable, Category="Player|Stamina")
 	void SetStaminaRecuperationFactor(float NewStaminaRecuperationFactor);
 
-	UPROPERTY(BlueprintAssignable, Category = "Player|Stamina")
+	UPROPERTY(BlueprintAssignable, Category="Player|Stamina")
 	FFloatStatUpdated OnStaminaChanged;
 
 #pragma endregion
 
 #pragma region Psi Power
 
-	UFUNCTION(BlueprintPure, Cateogory = "Player|PsiPower")
+	UFUNCTION(BlueprintPure, Category = "Player|PsiPower")
 	float GetPsiPower();
 
-	UFUNCTION(BlueprintPure, Cateogory = "Player|PsiPower")
+	// TODO: another BlueprintPure function originally
+	UFUNCTION(BlueprintCallable, Category = "Player|PsiPower")
 	void PsiBlast();
 
 	UPROPERTY(BlueprintAssignable, Category = "Player|Psi Power")
-	FFloatStatusUpdated OnPsiPowerChanged;
+	FFloatStatUpdated OnPsiPowerChanged;
 
 #pragma endregion
 
 #pragma region Keys
 
-	UFUNCTION(BlueprintCallable, Cateogory = "Player|KeyWallet")
+	UFUNCTION(BlueprintCallable, Category = "Player|KeyWallet")
 	void AddKey(FString KeyToAdd);
 
-	UFUNCTION(BlueprintCallable, Cateogory = "Player|KeyWallet")
+	UFUNCTION(BlueprintCallable, Category = "Player|KeyWallet")
 	void RemoveKey(FString KeyToRemove);
 
-	UFUNCTION(BlueprintPure, Cateogory = "Player|KeyWallet")
+	UFUNCTION(BlueprintPure, Category = "Player|KeyWallet")
 	bool IsPlayerCarryingKey(FString DesiredKey);
 
 	UPROPERTY(BlueprintAssignable, Category = "Player|KeyWallet")
@@ -121,6 +144,10 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	bool bIsRunning = false;
+	bool bHasRan = false;
+	bool bHasJumped = false;
+
 	static constexpr int BaseStatValue = 100;
 	int MaxHealth = BaseStatValue;
 	int CurrentHealth = BaseStatValue;

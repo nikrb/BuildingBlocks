@@ -90,12 +90,12 @@ void APlayerControllerBBBase::HandleJump()
 
 void APlayerControllerBBBase::HandlePsiBlast()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Psi Blast!"));
+	if (PlayerCharacter) PlayerCharacter->PsiBlast();
 }
 
 void APlayerControllerBBBase::HandleToggleSprint()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Sprint!"));
+	if (PlayerCharacter) PlayerCharacter->ToggleRunning();
 }
 
 void APlayerControllerBBBase::HandleToggleCrouch()

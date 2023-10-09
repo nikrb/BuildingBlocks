@@ -24,6 +24,31 @@ void ACharacterBB::BeginPlay()
 	}
 }
 
+void ACharacterBB::AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce)
+{
+	if (bIsRunning && CurrentStamina <= 0) {
+		SetRunning(false);
+	}
+	Super::AddMovementInput(WorldDirection, ScaleValue, bForce);
+	if (bIsRunning) bHasRan = true;
+}
+
+void ACharacterBB::Jump()
+{
+	if (CurrentStamina - JumpStaminaCost >= 0.f) {
+		UnCrouch();
+		Super::Jump();
+		bHasJumped = true;
+	}
+}
+
+void ACharacterBB::Crouch(bool bClientSimulation)
+{
+	SetRunning(false);
+	Super::Crouch(bClientSimulation);
+}
+
+
 // Called every frame
 void ACharacterBB::Tick(float DeltaTime)
 {
@@ -35,10 +60,27 @@ void ACharacterBB::Tick(float DeltaTime)
 	else if (bHasRan) ActualStaminaRecuperationFactor = -RunStaminaCost;
 	else if (bIsCrouched) ActualStaminaRecuperationFactor = RestStaminaRebate;
 
-	// TODO: got to here
+	const float PreviousStamina = CurrentStamina;
+
+	CurrentStamina = FMath::Clamp(CurrentStamina + ActualStaminaRecuperationFactor, 0.f, MaxStamina);
+	if (CurrentStamina != PreviousStamina) {
+		OnStaminaChanged.Broadcast(PreviousStamina, CurrentStamina, MaxStamina);
+	}
+
+	bHasRan = false;
+	bHasJumped = false;
 
 #pragma endregion
 
+#pragma region update psi power
+	if (CurrentPsiPower != MaxPsiPower) {
+		const float PreviousPsiPower = CurrentPsiPower;
+		CurrentPsiPower = FMath::Clamp(CurrentPsiPower + PsiRechargeRate, 0, MaxPsiPower);
+		OnPsiPowerChanged.Broadcast(PreviousPsiPower, CurrentPsiPower, MaxPsiPower);
+	}
+#pragma endregion
+
+	// TODO: temp debug info
 }
 
 // Called to bind functionality to input
@@ -46,6 +88,23 @@ void ACharacterBB::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+}
+
+void ACharacterBB::SetRunning(bool IsRunning) {
+	bIsRunning = IsRunning;
+	GetCharacterMovement()->MaxWalkSpeed = bIsRunning ? RunningMaxWalkSpeed : NormalMaxWalkSpeed;
+}
+
+void ACharacterBB::ToggleRunning() {
+	SetRunning(!bIsRunning);
+}
+
+void ACharacterBB::SetHasJumped() {
+	bHasJumped = true;
+}
+
+void ACharacterBB::SetHasRan() {
+	bHasRan = true;
 }
 
 int ACharacterBB::GetHealth()
@@ -76,14 +135,25 @@ void ACharacterBB::UpdateHealth(int DeltaHealth)
 	}
 }
 
-void ACharacterBB::RestorToFullHealth()
+void ACharacterBB::RestoreToFullHealth()
 {
-	CurrentHealth = MaxHealth;
+	if (CurrentHealth < MaxHealth) {
+		int OldValue = CurrentHealth;
+		CurrentHealth = MaxHealth;
+		OnHealthChanged.Broadcast(OldValue, CurrentHealth, MaxHealth);
+	}
 }
 
 void ACharacterBB::SetMaxHealth(int NewMaxHealth)
 {
+	int OldValue = MaxHealth;
 	MaxHealth = NewMaxHealth;
+	if (MaxHealth != OldValue) {
+		if (MaxHealth < OldValue) {
+			if (CurrentHealth > MaxHealth) CurrentHealth = MaxHealth;
+		}
+		OnHealthChanged.Broadcast(OldValue, CurrentHealth, MaxHealth);
+	}
 }
 
 float ACharacterBB::GetStamina()
@@ -109,7 +179,6 @@ float ACharacterBB::GetPsiPower()
 void ACharacterBB::PsiBlast()
 {
 	if (CurrentPsiPower >= PsiBlastCost) {
-		// TODO: do Psi Blast
 		CurrentPsiPower -= PsiBlastCost;
 	}
 }
@@ -117,10 +186,11 @@ void ACharacterBB::PsiBlast()
 void ACharacterBB::AddKey(FString KeyToAdd)
 {
 	if (KeyWallet.Contains(KeyToAdd)) {
-		// TODO: already have key - play a noise?
+		OnKeyWalletAction.Broadcast(KeyToAdd, EPlayerKeyAction::AddKey, false);
 	}
 	else {
 		KeyWallet.Add(KeyToAdd);
+		OnKeyWalletAction.Broadcast(KeyToAdd, EPlayerKeyAction::AddKey, true);
 	}
 }
 
@@ -128,11 +198,17 @@ void ACharacterBB::RemoveKey(FString KeyToRemove)
 {
 	if (KeyWallet.Contains(KeyToRemove)) {
 		KeyWallet.Remove(KeyToRemove);
+		OnKeyWalletAction.Broadcast(KeyToRemove, EPlayerKeyAction::RemoveKey, true);
+	}
+	else {
+		OnKeyWalletAction.Broadcast(KeyToRemove, EPlayerKeyAction::RemoveKey, false);
 	}
 }
 
 bool ACharacterBB::IsPlayerCarryingKey(FString DesiredKey)
 {
-	return KeyWallet.Contains(DesiredKey);
+	bool Result = KeyWallet.Contains(DesiredKey);
+	OnKeyWalletAction.Broadcast(DesiredKey, EPlayerKeyAction::TestKey, Result);
+	return Result;
 }
 
